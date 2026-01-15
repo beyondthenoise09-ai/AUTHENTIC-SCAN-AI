@@ -3,183 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AuthentiScan AI | Multi-Model</title>
+    <title>AuthentiScan AI | Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Space Grotesk', sans-serif; background: #050505; }
-        /* Changed to Purple Theme to verify update */
-        .neon-glow { box-shadow: 0 0 25px rgba(168, 85, 247, 0.2); }
+        body { font-family: 'Space Grotesk', sans-serif; background: #000; color: white; }
+        .glass { background: rgba(20, 20, 20, 0.8); border: 1px solid #333; backdrop-filter: blur(10px); }
         .scan-line {
-            width: 100%; height: 3px; background: #a855f7;
-            position: absolute; top: 0; left: 0; display: none;
-            box-shadow: 0 0 15px #a855f7;
-            animation: scanning 2s linear infinite;
+            width: 100%; height: 2px; background: #00ffcc;
+            position: absolute; animation: scan 2s infinite; display: none;
         }
-        @keyframes scanning { 0% { top: 0%; } 100% { top: 100%; } }
-        .glass { background: rgba(20, 20, 30, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
     </style>
 </head>
-<body class="text-white min-h-screen flex flex-col items-center justify-center p-4">
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-md flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-2xl font-black tracking-tighter text-purple-400">AUTHENTI<span class="text-white">SCAN</span></h1>
-            <p class="text-[10px] text-slate-400 font-bold tracking-[0.3em] uppercase">Multi-Core AI v4.0</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <div class="h-2 w-2 rounded-full bg-purple-500 animate-pulse"></div>
-            <span class="text-[10px] font-bold text-slate-500">SYSTEM V4.0</span>
-        </div>
-    </div>
-
-    <div class="w-full max-w-md glass rounded-[2rem] p-6 neon-glow relative overflow-hidden">
+    <div class="w-full max-w-md glass rounded-2xl p-6 relative overflow-hidden">
         <div id="scanLine" class="scan-line"></div>
+
+        <h1 class="text-2xl font-bold text-center mb-6 text-white tracking-widest">AUTHENTI<span class="text-teal-400">SCAN</span></h1>
         
-        <div id="uploadBox" class="border-2 border-dashed border-slate-700 rounded-2xl py-12 text-center hover:border-purple-500/50 transition-colors cursor-pointer" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="handleFile(event)">
-            <div class="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-400">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            </div>
-            <p class="text-sm font-medium text-slate-300">Tap to Upload Screenshot</p>
-            <p class="text-[10px] text-slate-500 mt-2 uppercase tracking-wider">Auto-Model Detection</p>
+        <div id="uploadBox" class="border-2 border-dashed border-gray-700 rounded-xl p-10 text-center cursor-pointer hover:border-teal-500 transition" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="previewImage(event)">
+            <p class="text-gray-400 text-sm">Tap to Upload Screenshot</p>
         </div>
 
-        <div id="previewBox" class="hidden mt-4 relative">
-            <img id="previewImg" class="w-full h-64 object-contain rounded-xl bg-black/30 border border-slate-700">
-            <button onclick="resetUI()" class="absolute top-2 right-2 bg-red-500/80 text-white p-2 rounded-full text-xs hover:bg-red-600">✕</button>
+        <div id="previewBox" class="hidden mt-4">
+            <img id="previewImg" class="w-full rounded-lg border border-gray-700">
+            <button onclick="runScan()" id="scanBtn" class="w-full mt-4 bg-teal-500 hover:bg-teal-400 text-black font-bold py-3 rounded-xl transition uppercase tracking-widest">
+                Start Forensic Scan
+            </button>
         </div>
 
-        <button id="scanBtn" onclick="runSmartScan()" class="w-full mt-6 bg-purple-600 hover:bg-purple-500 text-white font-black py-4 rounded-xl transition-all uppercase tracking-[0.15em] text-xs shadow-lg shadow-purple-500/20 active:scale-95 flex justify-center items-center gap-2">
-            START FORENSIC SCAN
-        </button>
-    </div>
-
-    <div id="resultBox" class="w-full max-w-md mt-6 hidden transition-all duration-500">
-        <div class="glass rounded-2xl p-6 border-l-4 border-purple-500">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-xs font-bold text-purple-400 uppercase tracking-widest">Analysis Report</h3>
-                <span id="modelUsed" class="text-[9px] text-slate-500 uppercase border border-slate-700 px-2 py-0.5 rounded">Model: Auto</span>
-            </div>
-            <div id="aiOutput" class="text-sm text-slate-300 leading-relaxed font-light"></div>
+        <div id="resultBox" class="hidden mt-6 bg-gray-900 p-4 rounded-xl border-l-4 border-teal-500">
+            <p id="output" class="text-sm text-gray-300 leading-relaxed"></p>
         </div>
     </div>
 
     <script>
-        const API_KEY = "AIzaSyCGxuy3X_36-fOj9uFMoG6wNaJQCTPZWhM";
+        // ⚠️ YAHAN NAYI KEY DALO (Purani wali mat use karna)
+        const API_KEY = "AIzaSyDeAssBhFCROcFnwDIP1aCz90Y0guT0F1Y";
 
-        // Hum ye 3 models bari-bari try karenge
-        const MODELS = [
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-001",
-            "gemini-1.5-pro"
-        ];
-
-        let currentFile = null;
-
-        function handleFile(e) {
-            const file = e.target.files[0];
-            if(file) {
-                currentFile = file;
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    document.getElementById('previewImg').src = event.target.result;
-                    document.getElementById('previewBox').classList.remove('hidden');
+                reader.onload = (e) => {
+                    document.getElementById('previewImg').src = e.target.result;
                     document.getElementById('uploadBox').classList.add('hidden');
-                }
+                    document.getElementById('previewBox').classList.remove('hidden');
+                };
                 reader.readAsDataURL(file);
             }
         }
 
-        function resetUI() {
-            currentFile = null;
-            document.getElementById('fileInput').value = "";
-            document.getElementById('previewBox').classList.add('hidden');
-            document.getElementById('uploadBox').classList.remove('hidden');
-            document.getElementById('resultBox').classList.add('hidden');
-        }
-
-        async function runSmartScan() {
+        async function runScan() {
             const btn = document.getElementById('scanBtn');
             const line = document.getElementById('scanLine');
+            const output = document.getElementById('output');
             const resultBox = document.getElementById('resultBox');
-            const aiOutput = document.getElementById('aiOutput');
-            const modelTag = document.getElementById('modelUsed');
+            const fileInput = document.getElementById('fileInput');
 
-            if(!currentFile) return alert("Please upload an image first!");
-
+            btn.innerText = "Scanning...";
             btn.disabled = true;
             line.style.display = 'block';
-            resultBox.classList.add('hidden');
 
             try {
-                const base64String = await toBase64(currentFile);
-                const cleanBase64 = base64String.split(',')[1];
-                const mimeType = currentFile.type || "image/jpeg";
+                // Image processing
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                
+                reader.onload = async () => {
+                    const base64Data = reader.result.split(',')[1];
 
-                let success = false;
-                let finalError = "";
+                    // Direct Call to Gemini 1.5 Flash (Sabse stable model)
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { text: "Analyze this image. Is it a fake screenshot? Check font and alignment. Reply in Hindi/Hinglish." },
+                                    { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+                                ]
+                            }]
+                        })
+                    });
 
-                // LOOP: Try every model until one works
-                for (const modelName of MODELS) {
-                    btn.innerHTML = `<span class="animate-pulse">TRYING ${modelName.toUpperCase()}...</span>`;
-                    
-                    try {
-                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
-                        
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{
-                                    parts: [
-                                        { text: "You are a digital forensic expert. Analyze this screenshot. Is it fake/edited? Check fonts, alignment, pixels. Give a trust score %." },
-                                        { inline_data: { mime_type: mimeType, data: cleanBase64 } }
-                                    ]
-                                }]
-                            })
-                        });
+                    const data = await response.json();
 
-                        const data = await response.json();
-
-                        if (data.error) throw new Error(data.error.message);
-                        if (!data.candidates) throw new Error("No response");
-
-                        // Agar yahan tak pahuche matlab SUCCESS
-                        const text = data.candidates[0].content.parts[0].text;
-                        aiOutput.innerText = text;
-                        modelTag.innerText = "Model: " + modelName;
-                        success = true;
-                        break; // Stop loop
-
-                    } catch (err) {
-                        console.log(`Model ${modelName} failed:`, err.message);
-                        finalError = err.message;
+                    if (data.error) {
+                        alert("Error: " + data.error.message);
+                    } else {
+                        output.innerText = data.candidates[0].content.parts[0].text;
+                        resultBox.classList.remove('hidden');
                     }
-                }
-
-                if (success) {
-                    resultBox.classList.remove('hidden');
-                    resultBox.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    alert("All AI Models Failed. Error: " + finalError);
-                }
+                    
+                    btn.innerText = "Start Forensic Scan";
+                    btn.disabled = false;
+                    line.style.display = 'none';
+                };
 
             } catch (error) {
-                alert("System Error: " + error.message);
-            } finally {
+                alert("Scan Failed: " + error.message);
                 btn.disabled = false;
-                btn.innerHTML = "START FORENSIC SCAN";
-                line.style.display = 'none';
             }
         }
-
-        const toBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
     </script>
 </body>
 </html>
