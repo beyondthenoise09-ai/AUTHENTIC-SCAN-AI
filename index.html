@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuthentiScan AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white p-6">
+    <div class="max-w-md mx-auto bg-slate-800 p-6 rounded-3xl shadow-2xl border border-slate-700">
+        <h1 class="text-2xl font-bold text-cyan-400 mb-2">AuthentiScan AI</h1>
+        <p class="text-xs text-slate-400 mb-6 font-mono">STATUS: SYSTEM_READY</p>
+        
+        <input type="file" id="fileInput" accept="image/*" class="mb-4 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-cyan-500 file:text-black">
+        
+        <button id="scanBtn" onclick="runAnalysis()" class="w-full bg-cyan-500 text-black font-bold py-4 rounded-xl active:scale-95 transition-all uppercase text-sm tracking-widest">
+            Run Forensic Scan
+        </button>
+
+        <div id="resultBox" class="mt-6 hidden p-4 bg-black/40 rounded-xl border border-slate-700">
+            <p id="aiOutput" class="text-sm leading-relaxed text-slate-300"></p>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyCGxuy3X_36-fOj9uFMoG6wNaJQCTPZWhM";
+
+        async function runAnalysis() {
+            const fileInput = document.getElementById('fileInput');
+            const btn = document.getElementById('scanBtn');
+            const output = document.getElementById('aiOutput');
+            const box = document.getElementById('resultBox');
+
+            if (!fileInput.files[0]) return alert("Pehle screenshot select karein!");
+
+            btn.innerText = "⚡ SCANNING PIXELS...";
+            btn.disabled = true;
+
+            try {
+                const base64 = await toBase64(fileInput.files[0]);
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [
+                            { text: "Analyze this image. Is it a fake or edited screenshot? Look at fonts and pixels. Give trust score." },
+                            { inline_data: { mime_type: "image/jpeg", data: base64.split(',')[1] } }
+                        ]}]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates[0].content) {
+                    box.classList.remove('hidden');
+                    output.innerText = data.candidates[0].content.parts[0].text;
+                } else {
+                    alert("API Error: Please host this file on Vercel/Replit. Local files won't work.");
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.innerText = "Run Forensic Scan";
+                btn.disabled = false;
+            }
+        }
+
+        const toBase64 = file => new Promise((res) => {
+            const r = new FileReader();
+            r.readAsDataURL(file);
+            r.onload = () => res(r.result);
+        });
+    </script>
+</body>
+</html>
